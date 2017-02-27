@@ -2,9 +2,11 @@ package com.coolweather.android;
 
 import android.app.Fragment;
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.database.DataSetObservable;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -106,6 +108,12 @@ public class ChooseAreaFragment extends Fragment {
                 }else if(currentLevel==LEVEL_CITY){
                    selectedCity=cityList.get(position);
                     queryCounties();
+                }else if(currentLevel==LEVEL_COUNTY){
+                    String weatherId=countyList.get(position).getWeatherId();
+                    Intent intent=new Intent(getActivity(),WeatherActivity.class);
+                    intent.putExtra("weather_id",weatherId);
+                    startActivity(intent);
+                    getActivity().finish();
                 }
             }
         });
@@ -127,7 +135,7 @@ public class ChooseAreaFragment extends Fragment {
      */
     private void queryProvinces() {
         titleText.setText("中国");
-        backButton.setVisibility(View.GONE);
+        backButton.setVisibility(View.GONE);//隐藏返回按钮
         provinceList= DataSupport.findAll(Province.class);
         if(provinceList.size()>0){
             dataList.clear();
@@ -155,8 +163,8 @@ public class ChooseAreaFragment extends Fragment {
             for(City city:cityList){
                 dataList.add(city.getCityName());
             }
-            adapter.notifyDataSetChanged();
-            listView.setSelection(0);
+            adapter.notifyDataSetChanged();//数据更新
+            listView.setSelection(0);//焦点在第一项
             currentLevel=LEVEL_CITY;
         }else {
             int provinceCode=selectedProvince.getProvinceCode();
@@ -169,7 +177,8 @@ public class ChooseAreaFragment extends Fragment {
     private void queryCounties() {
         titleText.setText(selectedCity.getCityName());
         backButton.setVisibility(View.VISIBLE);
-        countyList=DataSupport.where("cityid=?",String.valueOf(selectedCity.getId())).find(County.class);
+        countyList=DataSupport.where("cityid=?",String.valueOf(selectedCity.getId()) )
+                .find(County.class);
         if(countyList.size()>0){
             dataList.clear();
             for(County county:countyList){
@@ -205,6 +214,7 @@ public class ChooseAreaFragment extends Fragment {
                 boolean result=false;
                 if("province".equals(type)){
                     result= Utility.handleProvinceResponse(responseText);
+                   // Log.d("MainActivity",responseText);
                 }else if ("city".equals(type)){
                     result=Utility.handleCityResponse(responseText,selectedProvince.getId());
                 }else if("county".equals(type)){
@@ -247,6 +257,7 @@ public class ChooseAreaFragment extends Fragment {
             progressDialog.setMessage("正在加载...");
             progressDialog.setCanceledOnTouchOutside(false);
         }
+        progressDialog.show();
     }
 
 
